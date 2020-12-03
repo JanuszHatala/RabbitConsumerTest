@@ -47,4 +47,28 @@ public class Subscriber {
     public void receiveTopicFileUploadedToMeeting(final String message) {
         log.info("\nFile uploaded to Meeting {} > {}", topicFileUploadedToMeeting.getName(), message);
     }
+
+    @Autowired
+    Queue queueNotificationSettingsUpdated;
+
+    @RabbitListener(queues = "#{queueNotificationSettingsUpdated.getName()}")
+    public void receiveNotificationSettingsUpdated(final Object settings) {
+        log.info("\nNotificationSettingsUpdated(): {} > {}", queueNotificationSettingsUpdated.getName(), settings);
+    }
+
+    @Autowired
+    Queue queueTaskSettingsUpdated;
+
+    @RabbitListener(queues = "#{queueTaskSettingsUpdated.getName()}")
+    public void receiveTaskSettingsUpdated(final TaskSettings settings) {
+        log.info("\nTaskSettingsUpdated(): {} > {}", queueTaskSettingsUpdated.getName(), settings);
+    }
+
+    @Autowired
+    Queue queueSettingsUpdated;
+
+    @RabbitListener(queues = "#{queueSettingsUpdated.getName()}")
+    public void receiveSettingsUpdated(final Object settings) {
+        log.info("\nSettingsUpdated(): {} > {}", queueSettingsUpdated.getName(), settings);
+    }
 }

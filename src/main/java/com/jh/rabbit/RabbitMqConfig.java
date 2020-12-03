@@ -2,6 +2,7 @@ package com.jh.rabbit;
 
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.Declarables;
+import org.springframework.amqp.core.DirectExchange;
 import org.springframework.amqp.core.FanoutExchange;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.core.TopicExchange;
@@ -9,6 +10,8 @@ import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.listener.MessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter;
+import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -39,6 +42,11 @@ public class RabbitMqConfig {
     private String fanoutQueue;
     @Value("${rabbitmq.topicqueue}")
     private String topicQueue;
+
+    @Bean
+    public MessageConverter jackson2MessageConverter() {
+        return new Jackson2JsonMessageConverter();
+    }
 
     @Bean
     Queue queue() {
@@ -151,4 +159,71 @@ public class RabbitMqConfig {
                         .bind(topicFileUploadedToMeeting())
                         .to(topicExchange).with(BINDING_PATTERN_FILE_UPLOADED_TO_MEETING));
     }
+
+    // Notification Settings updated
+
+    @Bean
+    Queue queueNotificationSettingsUpdated() {
+        return new Queue("rabbitConsumer.notificationsUpdated.queue", Boolean.TRUE);
+    }
+
+    @Bean
+    public Declarables topicBindingsUserNotificationSettingsUpdated() {
+
+        TopicExchange topicExchange = new TopicExchange("topic.userSettings.exchange");
+
+        return new Declarables(
+                queueNotificationSettingsUpdated(),
+                topicExchange,
+                BindingBuilder
+                        .bind(queueNotificationSettingsUpdated())
+                        .to(topicExchange).with("key.notificationSettings.updated"));
+    }
+
+    // Task Settings updated
+
+    @Bean
+    Queue queueTaskSettingsUpdated() {
+        return new Queue("rabbitConsumer.tasksUpdated.queue", Boolean.TRUE);
+    }
+
+    @Bean
+    public Declarables topicBindingsUserTaskSettingsUpdated() {
+
+        TopicExchange topicExchange = new TopicExchange("topic.userSettings.exchange");
+
+        return new Declarables(
+                queueTaskSettingsUpdated(),
+                topicExchange,
+                BindingBuilder
+                        .bind(queueTaskSettingsUpdated())
+                        .to(topicExchange).with("key.taskSettings.updated"));
+    }
+
+    // All Settings updates
+
+    @Bean
+    Queue queueSettingsUpdated() {
+        return new Queue("rabbitConsumer.settingsUpdated.queue", Boolean.TRUE);
+    }
+
+    @Bean
+    public Declarables topicBindingsUserSettingsUpdated() {
+
+        TopicExchange topicExchange = new TopicExchange("topic.userSettings.exchange");
+
+        return new Declarables(
+                queueSettingsUpdated(),
+                topicExchange,
+                BindingBuilder
+                        .bind(queueSettingsUpdated())
+                        .to(topicExchange).with("key.*.updated"));
+    }
+
+    // Direct exchange
+    @Bean
+    public DirectExchange directExchange() {
+        return new DirectExchange("direct.userSettings.exchange");
+    }
+
 }
